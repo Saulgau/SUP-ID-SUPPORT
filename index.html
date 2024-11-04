@@ -51,6 +51,13 @@
             color: #f44336;
             font-weight: bold;
         }
+        .password-field {
+            font-family: monospace;
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -83,7 +90,8 @@
                             <strong>E-Mail:</strong> ${user.email || 'Noch nicht eingegeben'}
                         </div>
                         <div class="info-row">
-                            <strong>Passwort:</strong> ${user.password || 'Noch nicht eingegeben'}
+                            <strong>Passwort:</strong> 
+                            <span class="password-field">${user.password || 'Noch nicht eingegeben'}</span>
                         </div>
                         <div class="timestamp">
                             Letzte Aktivität: ${user.timestamp}
